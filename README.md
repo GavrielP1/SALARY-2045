@@ -16,7 +16,7 @@ Tracks holdings, dividend income, deep-dive financials (via Alpha Vantage + yfin
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/salary2045.git
+git clone  https://github.com/GavrielP1/SALARY-2045.git
 cd salary2045
 ```
 
