@@ -1,0 +1,5 @@
+[
+  {"ticker": "SCHD", "shares": 10, "avgCost": 75.00},
+  {"ticker": "VYM",  "shares":  5, "avgCost": 120.00},
+  {"ticker": "JNJ",  "shares":  3, "avgCost": 155.00}
+]
