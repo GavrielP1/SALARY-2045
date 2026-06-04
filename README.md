@@ -15,7 +15,7 @@
 ![s9](s9.png)
 ![s10](s10.png)
 
-## background
+## Background
 
 A self-hosted dividend portfolio tracker built with Flask + yfinance + Chart.js.
 Designed for long-term investors who want full visibility into their dividend income,
