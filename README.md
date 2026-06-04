@@ -13,16 +13,27 @@
 ![s9](s9.png)
 ![s10](s10.png)
 
-A self-hosted dividend portfolio tracker built with Flask + Chart.js.
-Tracks holdings, dividend income, deep-dive financials (via Alpha Vantage + yfinance), and projects progress toward a passive income goal.
+A self-hosted dividend portfolio tracker built with Flask + yfinance + Chart.js.
+Designed for long-term investors who want full visibility into their dividend income,
+portfolio health, and progress toward financial independence.
+
+No subscriptions. No cloud. Runs entirely on your machine.
+
 
 ## Features
 
-- **Holdings tab** — live prices, gain/loss, dividend yield, safety score
-- **Overview** — portfolio value, income progress, sector diversification
-- **Dividend Predictor** — 12-quarter forward projection with CAGR
-- **Stock Deep-Dive** — revenue, earnings, FCF, payout history, forward estimates
-- **Income Calendar** — projected monthly income for the next 12 months
+## Features
+
+- **Overview** — Live portfolio snapshot: total value, annual dividend income, yield on cost, forward yield, beta vs S&P 500, and progress toward your passive income goal
+- **Holdings** — Full breakdown of each position: current price, gain/loss, dividend yield, annual income per holding, yield on cost, payout ratio, and dividend safety score
+- **Diversification** — Sector and industry allocation charts so you can spot concentration risk at a glance
+- **Income** — Annual and monthly dividend income breakdown by holding, with historical trends
+- **Calendar** — 12-month forward projection of expected dividend payments, month by month
+- **Goals** — Set your annual passive income target and track milestone progress
+- **Performance** — Portfolio returns vs benchmark over time
+- **Dividend Predictor** — 12-quarter forward dividend projection using historical CAGR, with adjustable growth rate assumptions
+- **Stock Deep-Dive** — Per-stock financials: revenue, net income, EPS, FCF, payout history, profit margins, dividend growth history, and forward analyst estimates — sourced from both yfinance and Alpha Vantage
+
 
 ## Setup
 
