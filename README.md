@@ -1,5 +1,18 @@
 # Salary 2045 — Portfolio Tracker
 ![Demo](part1-ezgif.com-optimize.gif)
+## Screenshots
+
+![s1](s1.png)
+![s2](s2.png)
+![s3](s3.png)
+![s4](s4.png)
+![s5](s5.png)
+![s6](s6.png)
+![s7](s7.png)
+![s8](s8.png)
+![s9](s9.png)
+![s10](s10.png)
+
 A self-hosted dividend portfolio tracker built with Flask + Chart.js.
 Tracks holdings, dividend income, deep-dive financials (via Alpha Vantage + yfinance), and projects progress toward a passive income goal.
 
