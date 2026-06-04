@@ -1,5 +1,7 @@
 # Salary 2045 — Portfolio Tracker
+## GIF
 ![Demo](part1-ezgif.com-optimize.gif)
+
 ## Screenshots
 
 ![s1](s1.png)
@@ -13,14 +15,14 @@
 ![s9](s9.png)
 ![s10](s10.png)
 
+## background
+
 A self-hosted dividend portfolio tracker built with Flask + yfinance + Chart.js.
 Designed for long-term investors who want full visibility into their dividend income,
 portfolio health, and progress toward financial independence.
 
 No subscriptions. No cloud. Runs entirely on your machine.
 
-
-## Features
 
 ## Features
 
