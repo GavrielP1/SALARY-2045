@@ -36,6 +36,25 @@ No subscriptions. No cloud. Runs entirely on your machine.
 - **Dividend Predictor** — 12-quarter forward dividend projection using historical CAGR, with adjustable growth rate assumptions
 - **Stock Deep-Dive** — Per-stock financials: revenue, net income, EPS, FCF, payout history, profit margins, dividend growth history, and forward analyst estimates — sourced from both yfinance and Alpha Vantage
 
+## Docker
+
+A Dockerfile and docker-compose.yml are included in the repo.
+
+**Before running**, make sure you have created your local files:
+```
+cp holdings.example.json holdings.json
+cp goal.example.json goal.json       # optional
+cp .env.example .env                 # optional, for Alpha Vantage key
+```
+
+**Run:**
+```
+docker compose up --build
+```
+
+Then open http://localhost:5000
+
+Volume mounts are configured for `holdings.json`, `goal.json`, `.env`, and `financials_cache/` — your data is stored on the host and persists across container restarts.
 
 ## Setup
 
