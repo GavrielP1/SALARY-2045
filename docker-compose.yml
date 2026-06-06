@@ -1,0 +1,11 @@
+services:
+  dividend-tracker:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./holdings.json:/app/holdings.json
+      - ./goal.json:/app/goal.json
+      - ./.env:/app/.env
+      - ./financials_cache:/app/financials_cache
+    restart: unless-stopped
