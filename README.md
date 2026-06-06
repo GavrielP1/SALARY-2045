@@ -45,6 +45,35 @@ The setup is identical to Windows with two differences:
 
 Everything else (pip install, running the app, the browser address) is the same.
 
+## Linux
+
+**Option A — Run directly:**
+
+```bash
+git clone https://github.com/GavrielP1/SALARY-2045.git
+cd SALARY-2045
+pip install flask flask-cors yfinance requests python-dotenv
+cp holdings.example.json holdings.json
+python3 app.py
+```
+
+Then open http://localhost:5000
+
+> If `pip` is not found, try `pip3` instead.
+
+**Option B — Docker:**
+
+```bash
+git clone https://github.com/GavrielP1/SALARY-2045.git
+cd SALARY-2045
+cp holdings.example.json holdings.json
+docker compose up --build
+```
+
+Then open http://localhost:5000
+
+> Docker support is new and not yet tested on Linux .
+
 ## Docker
 
 A Dockerfile and docker-compose.yml are included in the repo.
