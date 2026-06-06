@@ -36,6 +36,15 @@ No subscriptions. No cloud. Runs entirely on your machine.
 - **Dividend Predictor** — 12-quarter forward dividend projection using historical CAGR, with adjustable growth rate assumptions
 - **Stock Deep-Dive** — Per-stock financials: revenue, net income, EPS, FCF, payout history, profit margins, dividend growth history, and forward analyst estimates — sourced from both yfinance and Alpha Vantage
 
+## Mac
+
+The setup is identical to Windows with two differences:
+
+1. To open a terminal inside the app folder: right-click the folder → **New Terminal at Folder** (or open Terminal from Spotlight and drag the folder in)
+2. If `python` is not recognized, try `python3` instead — macOS sometimes ships with both
+
+Everything else (pip install, running the app, the browser address) is the same.
+
 ## Docker
 
 A Dockerfile and docker-compose.yml are included in the repo.
