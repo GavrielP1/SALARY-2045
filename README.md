@@ -162,3 +162,13 @@ The following files are listed in `.gitignore` and must be created locally:
 - Alpha Vantage free tier: 25 requests/day, 5 requests/minute. The app sleeps between calls automatically.
 - `financials_cache/` stores fetched data for 90 days to avoid redundant API calls.
 - The CASH holding type is supported: add `{"ticker": "CASH", "shares": 1, "avgCost": 1000}` to represent uninvested cash.
+## Changelog
+v1.1.0 — Bug Fixes (June 2026)
+Fixed: Dividend frequency hardcoded as 4x/year
+The app previously assumed all stocks pay quarterly (×4). Now it detects actual payment frequency dynamically from dividend history — monthly payers like QQQI correctly show ×12 annualization. Handles new tickers with limited history by falling back to all available data instead of the 2-year window.
+Fixed: Dividend calendar showing current month only
+The calendar now projects 12 months forward based on detected payment frequency. Projected dates are labeled with a "Proj" badge to distinguish them from confirmed declared dates.
+Fixed: Crash on cost basis = 0
+Entering $0 as average cost no longer causes a divide-by-zero crash. Yield on Cost and Gain/Loss fields display "—" instead.
+Fixed: Ghost holding from fallback data
+Tickers that existed in the internal fallback list but not in holdings.json could appear in the table but fail to delete. The fallback list is now a minimal 3-ticker demo (SCHD/JNJ/PG) that will never conflict with real holdings.
