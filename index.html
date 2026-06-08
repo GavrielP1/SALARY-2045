@@ -974,12 +974,13 @@ function renderOverview() {
   const upcoming = hs
     .filter(h => h.dividendHistory && h.dividendHistory.length > 0)
     .map(h => {
-      const lastEntry = h.dividendHistory[h.dividendHistory.length - 1];
-      const lastDate = new Date(lastEntry.date);
-      // Estimate next date ~3 months ahead
-      const nextDate = new Date(lastDate);
-      nextDate.setMonth(nextDate.getMonth() + 3);
-      return { ticker: h.ticker, sector: h.sector, amount: lastEntry.amount, totalAmt: lastEntry.amount * h.shares, nextDate, shares: h.shares };
+      // BUG 2/3 fix: use detected frequency instead of hardcoded 3 months
+      const baseDate = h.lastPaymentDate ? new Date(h.lastPaymentDate) : new Date(h.dividendHistory[h.dividendHistory.length - 1].date);
+      const lastAmt  = h.lastPaymentAmount != null ? h.lastPaymentAmount : h.dividendHistory[h.dividendHistory.length - 1].amount;
+      const mStep    = Math.round(12 / (h.divFrequency || 4));
+      const nextDate = new Date(baseDate);
+      nextDate.setMonth(nextDate.getMonth() + mStep);
+      return { ticker: h.ticker, sector: h.sector, amount: lastAmt, totalAmt: lastAmt * h.shares, nextDate, shares: h.shares, estimated: h.divFrequencyEstimated };
     })
     .sort((a, b) => a.nextDate - b.nextDate)
     .slice(0, 8);
@@ -995,7 +996,7 @@ function renderOverview() {
       </div>
       <div style="text-align:right">
         <div class="mono" style="font-size:13px;font-weight:600">${fmtUSD(u.totalAmt)}</div>
-        <div style="font-size:11px;color:var(--muted)">${fmtUSD(u.amount,4)}/sh · <span class="badge badge-amber" style="font-size:10px">Forecast</span></div>
+        <div style="font-size:11px;color:var(--muted)">${fmtUSD(u.amount,4)}/sh · <span class="badge badge-amber" style="font-size:10px">Forecast${u.estimated ? ' (est.)' : ''}</span></div>
       </div>
     </div>
   `).join('');
@@ -1318,11 +1319,14 @@ function renderIncome() {
   if (state.portfolio) {
     state.portfolio.holdings.forEach(h => {
       if (!h.dividendHistory || !h.dividendHistory.length) return;
-      const last = h.dividendHistory[h.dividendHistory.length - 1];
-      const nextDate = new Date(last.date);
-      nextDate.setMonth(nextDate.getMonth() + 3);
+      // BUG 2/3 fix: use detected frequency instead of hardcoded +3 months
+      const baseDate = h.lastPaymentDate ? new Date(h.lastPaymentDate) : new Date(h.dividendHistory[h.dividendHistory.length - 1].date);
+      const lastAmt  = h.lastPaymentAmount != null ? h.lastPaymentAmount : h.dividendHistory[h.dividendHistory.length - 1].amount;
+      const mStep    = Math.round(12 / (h.divFrequency || 4));
+      const nextDate = new Date(baseDate);
+      nextDate.setMonth(nextDate.getMonth() + mStep);
       if (nextDate >= today && nextDate <= cutoff) {
-        rows.push({ ticker: h.ticker, sector: h.sector, amt: last.amount, total: last.amount * h.shares, date: nextDate, shares: h.shares });
+        rows.push({ ticker: h.ticker, sector: h.sector, amt: lastAmt, total: lastAmt * h.shares, date: nextDate, shares: h.shares, estimated: h.divFrequencyEstimated });
       }
     });
   }
@@ -1332,7 +1336,7 @@ function renderIncome() {
     <td class="text-right mono">${fmtUSD(r.amt, 4)}</td>
     <td class="text-right mono green font-bold">${fmtUSD(r.total)}</td>
     <td class="mono">${r.date.toLocaleDateString('en-US',{month:'short',year:'numeric'})}</td>
-    <td><span class="badge badge-amber">Forecast</span></td>
+    <td><span class="badge badge-amber">Forecast${r.estimated ? ' (est.)' : ''}</span></td>
   </tr>`).join('') : '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">No payments expected in next 90 days</td></tr>';
 }
 
@@ -1356,7 +1360,7 @@ function renderCalendar() {
         const h = state.portfolio?.holdings.find(x => x.ticker === e.ticker);
         const col = sectorColor(h?.sector);
         return `<div class="cal-holding" style="background:${col}18;color:${col}">
-          <span style="font-weight:600">${e.ticker}</span><span class="mono">${fmtUSD(e.amount)}</span>
+          <span style="font-weight:600">${e.ticker}</span><span class="mono">${fmtUSD(e.amount)}</span>${e.projected ? ' <span class="badge badge-muted" style="font-size:9px;padding:1px 5px">Proj</span>' : ''}
         </div>`;
       }).join('') : '<div class="cal-empty">No payments</div>'}
       ${total > 0 ? `<div style="margin-top:6px;font-size:11px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;text-align:right">${fmtUSD(total)}</div>` : ''}

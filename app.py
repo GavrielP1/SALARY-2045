@@ -11,9 +11,6 @@ import calendar
 import tempfile
 import requests
 from datetime import datetime, timezone, date, timedelta
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
@@ -22,7 +19,7 @@ import yfinance as yf
 BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 HOLDINGS_FILE = os.path.join(BASE_DIR, "holdings.json")
 
-AV_API_KEY = os.getenv("AV_API_KEY", "")
+AV_API_KEY = "OAGLVSDNFAM4B54H"
 AV_BASE    = "https://www.alphavantage.co/query"
 CACHE_DIR   = os.path.join(BASE_DIR, "financials_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -30,11 +27,12 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 app = Flask(__name__)
 CORS(app)
 
-# ── Hardcoded fallback (used only if holdings.json is missing) ─────────────────
+# ── Hardcoded fallback (used only if holdings.json is completely missing) ────────
+# Keep generic — must never contain real personal holdings.
 _FALLBACK_HOLDINGS = [
-    {"ticker": "SCHD", "shares": 10, "avgCost": 75.00},
-    {"ticker": "VYM",  "shares":  5, "avgCost": 120.00},
-    {"ticker": "JNJ",  "shares":  3, "avgCost": 155.00},
+    {"ticker": "SCHD", "shares": 10, "avgCost": 26.00},
+    {"ticker": "JNJ",  "shares":  5, "avgCost": 150.00},
+    {"ticker": "PG",   "shares":  3, "avgCost": 140.00},
 ]
 
 TAX_RATE  = 0.25     # Israeli capital gains tax
@@ -178,6 +176,66 @@ def _add_months(d: date, n: int) -> date:
     mo = total % 12 + 1
     max_day = calendar.monthrange(yr, mo)[1]
     return date(yr, mo, min(d.day, max_day))
+
+def _detect_div_frequency(divs) -> tuple:
+    """Detect actual dividend payment frequency from history.
+    Returns (frequency: int, is_estimated: bool).
+    frequency is one of 1 (annual), 2 (semi-annual), 4 (quarterly), 12 (monthly).
+
+    Strategy:
+    1. Try a 2-year window first. If it has >= 8 payments, use it.
+    2. Otherwise fall back to ALL available history (handles new tickers like QQQI).
+    3. Compute avg_per_year from total payments / months spanned, then snap to standard freq.
+    4. is_estimated = True if total_payments < 4.
+    """
+    if divs is None or divs.empty:
+        return 4, True
+    try:
+        import pandas as pd
+
+        # ── Try 2-year window first ────────────────────────────────────────────
+        cutoff = pd.Timestamp.now(tz="UTC") - pd.DateOffset(years=2)
+        idx = divs.index
+        if idx.tz is None:
+            idx = idx.tz_localize("UTC")
+        recent = divs[idx >= cutoff]
+
+        if len(recent) >= 8:
+            working = recent
+        else:
+            # Fall back to full history for new/short-history tickers
+            working = divs
+
+        if len(working) < 2:
+            return 4, True
+
+        # ── Compute avg payments per year from span ────────────────────────────
+        first_date = working.index[0]
+        last_date  = working.index[-1]
+        months_spanned = (last_date - first_date).days / 30.44
+
+        if months_spanned < 1:
+            return 4, True
+
+        total_payments = len(working)
+        avg_per_year   = (total_payments / months_spanned) * 12
+
+        # ── Snap to nearest standard frequency ────────────────────────────────
+        if avg_per_year >= 10:
+            freq = 12
+        elif avg_per_year >= 3:
+            freq = 4
+        elif avg_per_year >= 1.5:
+            freq = 2
+        else:
+            freq = 1
+
+        is_estimated = total_payments < 4
+        return freq, is_estimated
+
+    except Exception:
+        return 4, True
+
 
 def _div_cagr(divs, n: int):
     """n-year dividend CAGR from annual dividend sums. Returns None if history is insufficient."""
@@ -723,6 +781,10 @@ def _fetch_one(h: dict) -> dict:
             "safetyScore":            None,
             "safetyGrade":            "N/A",
             "safetyFactors":          0,
+            "divFrequency":           None,
+            "divFrequencyEstimated":  False,
+            "lastPaymentDate":        None,
+            "lastPaymentAmount":      None,
         }
 
     try:
@@ -736,8 +798,19 @@ def _fetch_one(h: dict) -> dict:
     quote_type = (info.get("quoteType") or "").upper()
     is_etf     = quote_type in ("ETF", "MUTUALFUND")
 
-    price   = _price(info)
-    ann_div = _ann_div_last4q(divs)
+    price = _price(info)
+
+    # BUG 2 fix: dynamic frequency detection instead of hardcoded ×4
+    freq, freq_est = _detect_div_frequency(divs)
+    if divs is not None and not divs.empty:
+        last_pay_amt  = round(float(divs.iloc[-1]), 6)
+        last_pay_date = divs.index[-1].date().isoformat()
+        ann_div       = round(last_pay_amt * freq, 6)
+    else:
+        last_pay_amt  = None
+        last_pay_date = None
+        ann_div       = 0.0
+
     history = _quarterly_history(divs, 12)
     streak  = _streak(divs)
     safety  = _safety_score(info, ann_div, streak)
@@ -745,7 +818,8 @@ def _fetch_one(h: dict) -> dict:
     mv  = round(shs * price, 4) if price is not None else None
     cb  = round(shs * ac, 4)
     gl  = round(mv - cb, 4) if mv is not None else None
-    glp = round(gl / cb, 6) if gl is not None else None
+    # BUG 1 fix: guard against cb == 0
+    glp = round(gl / cb, 6) if (gl is not None and cb) else None
 
     # Beta: try beta first, fall back to beta3Year (often available for ETFs)
     beta = info.get("beta")
@@ -778,7 +852,8 @@ def _fetch_one(h: dict) -> dict:
         "dividendYield":          _s(info, "dividendYield"),
         "annualDividendPerShare": ann_div,
         "annualIncome":           round(shs * ann_div, 4),
-        "yieldOnCost":            round(ann_div / ac, 6) if ann_div else None,
+        # BUG 1 fix: guard against ac == 0
+        "yieldOnCost":            round(ann_div / ac, 6) if (ann_div and ac) else None,
         "payoutRatio":            payout_ratio,
         "trailingEps":            _s(info, "trailingEps"),
         "dividendRate":           _s(info, "dividendRate"),
@@ -797,6 +872,11 @@ def _fetch_one(h: dict) -> dict:
         "safetyScore":            safety["score"],
         "safetyGrade":            safety["grade"],
         "safetyFactors":          safety["factorCount"],
+        # BUG 2/3: frequency detection for dynamic annualization and calendar projection
+        "divFrequency":           freq,
+        "divFrequencyEstimated":  freq_est,
+        "lastPaymentDate":        last_pay_date,
+        "lastPaymentAmount":      last_pay_amt,
     }
 
 # ── Shared portfolio build (with 15-min cache) ─────────────────────────────────
@@ -1002,7 +1082,9 @@ def api_predict(ticker):
         consistency = 0.0
 
     streak  = _streak(divs)
-    ann_div = _ann_div_last4q(divs)
+    # BUG 2 fix: use dynamic frequency instead of hardcoded ×4
+    freq_pred, freq_pred_est = _detect_div_frequency(divs)
+    ann_div = round(float(divs.iloc[-1]) * freq_pred, 6)
 
     # Earnings coverage + payout ratio
     ec = round(eps / ann_div, 2) if eps and ann_div else None
@@ -1016,35 +1098,32 @@ def api_predict(ticker):
     conf = min(100.0, max(0.0, cs + sb - crp))
     tier = "High" if conf >= 80 else ("Medium" if conf >= 50 else "Low")
 
-    # Last quarterly amount
-    try:
-        lq     = divs.resample("QE").sum()
-        lq     = lq[lq > 0]
-        last_d = lq.index[-1]
-        last_a = float(lq.iloc[-1])
-    except Exception:
-        last_d = None
-        last_a = ann_div / 4 if ann_div else 0.0
+    # Last raw payment (use actual payment, not quarterly-resampled)
+    last_a = float(divs.iloc[-1])
+    last_d_ts = divs.index[-1]
+    last_d = last_d_ts  # keep as Timestamp for .date() / .strftime()
 
-    # 12-quarter forward projection
-    gr        = c5 or c1 or 0.0
-    today     = date.today()
-    base_date = last_d.date() if last_d is not None else today
+    # Forward projection using detected frequency (3 years = freq * 3 payments)
+    gr          = c5 or c1 or 0.0
+    today       = date.today()
+    base_date   = last_d.date() if last_d is not None else today
+    months_step = 12 // freq_pred  # months between payments
 
     payouts = []
-    for i in range(12):
-        amt = last_a * ((1 + gr / 4) ** (i + 1))
-        ed  = _add_months(base_date, (i + 1) * 3)
+    n_proj  = freq_pred * 3  # 3 years of payments
+    for i in range(n_proj):
+        amt = last_a * ((1 + gr / freq_pred) ** (i + 1))
+        ed  = _add_months(base_date, (i + 1) * months_step)
         pd  = ed + timedelta(days=14)
         payouts.append({
             "exDate":     ed.strftime("%Y-%m-%d"),
             "payDate":    pd.strftime("%Y-%m-%d"),
             "amount":     round(amt, 4),
             "yoy":        round(gr, 4),
-            "confidence": tier if i < 4 else ("Medium" if conf >= 50 else "Low"),
+            "confidence": tier if i < freq_pred else ("Medium" if conf >= 50 else "Low"),
         })
 
-    proj_annual = sum(p["amount"] for p in payouts[:4])
+    proj_annual = sum(p["amount"] for p in payouts[:freq_pred])  # first year of payments
     next_days   = (date.fromisoformat(payouts[0]["exDate"]) - today).days if payouts else None
 
     result = {
@@ -1097,20 +1176,31 @@ def api_income():
     monthly = {k: {"total": 0.0, "holdings": []} for k in months_keys}
 
     for h in port["holdings"]:
-        history = h.get("dividendHistory", [])
-        if not history:
-            continue
-        # Derive pay months from last 8 quarterly entries
-        pay_months  = sorted(set(int(e["date"][5:7]) for e in history[-8:]))
-        last_q_amt  = history[-1]["amount"]
-        shs         = h["shares"]
+        # BUG 3 fix: project forward using detected frequency instead of static pay_months
+        last_date_str = h.get("lastPaymentDate")
+        last_amt      = h.get("lastPaymentAmount") or 0.0
+        freq          = h.get("divFrequency") or 4
+        shs           = h["shares"]
 
-        for key in monthly:
-            mo = int(key[5:7])
-            if mo in pay_months:
-                amt = round(last_q_amt * shs, 2)
-                monthly[key]["total"] = round(monthly[key]["total"] + amt, 2)
-                monthly[key]["holdings"].append({"ticker": h["ticker"], "amount": amt})
+        if not last_date_str or not last_amt:
+            continue
+
+        last_pay    = date.fromisoformat(last_date_str)
+        months_step = 12 // freq  # 1 for monthly, 3 for quarterly, 6 for semi-annual, 12 for annual
+
+        proj = last_pay
+        for _ in range(freq + 2):  # project enough cycles to fill the 12-month window
+            proj = _add_months(proj, months_step)
+            key  = f"{proj.year:04d}-{proj.month:02d}"
+            if key not in monthly:
+                continue
+            amt = round(last_amt * shs, 2)
+            monthly[key]["total"] = round(monthly[key]["total"] + amt, 2)
+            monthly[key]["holdings"].append({
+                "ticker":    h["ticker"],
+                "amount":    amt,
+                "projected": True,
+            })
 
     yearly_total = round(sum(v["total"] for v in monthly.values()), 2)
     result = {
@@ -1132,7 +1222,8 @@ def api_performance():
     perf = []
     for h in port["holdings"]:
         pr = h["gainLossPct"] or 0.0
-        dr = round(h["annualDividendPerShare"] / h["avgCost"], 6) if h["annualDividendPerShare"] else 0.0
+        # BUG 1 fix: guard against avgCost == 0
+        dr = round(h["annualDividendPerShare"] / h["avgCost"], 6) if (h["annualDividendPerShare"] and h["avgCost"]) else 0.0
         perf.append({
             "ticker":        h["ticker"],
             "totalReturn":   round(pr + dr, 6),
