@@ -1,19 +1,14 @@
 # Salary 2045 — Portfolio Tracker
-## GIF
-![Demo](part1-ezgif.com-optimize.gif)
+## Demo
 
-## Screenshots
+[![Demo](https://github.com/GavrielP1/SALARY-2045/raw/main/part1-ezgif.com-optimize.gif)](https://github.com/GavrielP1/SALARY-2045)
 
-![s1](s1.png)
-![s2](s2.png)
-![s3](s3.png)
-![s4](s4.png)
-![s5](s5.png)
-![s6](s6.png)
-![s7](s7.png)
-![s8](s8.png)
-![s9](s9.png)
-![s10](s10.png)
+| | | |
+|---|---|---|
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s1.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s2.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s3.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s4.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s5.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s6.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s7.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s8.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s9.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s10.png) | | |
 
 ## Background
 
@@ -22,7 +17,9 @@ Designed for long-term investors who want full visibility into their dividend in
 portfolio health, and progress toward financial independence.
 
 No subscriptions. No cloud. Runs entirely on your machine.
+## Featured On Product Hunt
 
+[![Featured on Product Hunt](https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=salary-2045&theme=dark)](https://www.producthunt.com/products/salary-2045)
 
 ## Features
 
