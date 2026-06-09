@@ -3,12 +3,13 @@
 
 [![Demo](https://github.com/GavrielP1/SALARY-2045/raw/main/part1-ezgif.com-optimize.gif)](https://github.com/GavrielP1/SALARY-2045)
 
-| | | |
-|---|---|---|
-| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s1.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s2.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s3.png) |
-| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s4.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s5.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s6.png) |
-| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s7.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s8.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s9.png) |
-| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s10.png) | | |
+| | |
+|---|---|
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s1.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s2.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s3.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s4.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s5.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s6.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s7.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s8.png) |
+| ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s9.png) | ![](https://github.com/GavrielP1/SALARY-2045/raw/main/s10.png) |
 
 ## Background
 
